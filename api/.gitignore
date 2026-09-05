@@ -1,0 +1,12 @@
+# Environnement Python
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# Secrets — ne jamais versionner
+.env
+
+# Divers
+.DS_Store
+Thumbs.db
