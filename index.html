@@ -22,6 +22,119 @@
 </head>
 <body>
 
+<!-- ===== NAVIGATION GLOBALE (Accueil / Application) ===== -->
+<nav class="site-nav">
+  <a href="#" class="site-nav-brand" data-page="home">
+    <img src="assets/logo.svg" alt="" width="26" height="26">
+    <span>SITS</span>
+  </a>
+  <div class="site-nav-links">
+    <a href="#" class="site-nav-link active" data-page="home">Accueil</a>
+    <a href="#" class="site-nav-link" data-page="app">Application</a>
+  </div>
+</nav>
+
+<!-- ============================================================ -->
+<!-- PAGE ACCUEIL                                                  -->
+<!-- ============================================================ -->
+<div id="page-home" class="page active">
+
+  <section class="hero-section">
+    <div class="hero-content">
+      <h1 class="hero-title">Système d'Information<br>Territorial du Sénégal</h1>
+      <p class="hero-subtitle">Explorez les régions, départements et infrastructures du territoire sénégalais sur une carte interactive.</p>
+      <a href="#" class="btn-hero" data-page="app">🚀 Lancer l'Application</a>
+      <a href="#about-section" class="btn-hero btn-hero-outline" id="btn-go-about">📖 En Savoir Plus</a>
+    </div>
+  </section>
+
+  <section class="home-section">
+    <h2 class="section-title">Fonctionnalités Principales</h2>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🗺️</div>
+        <div class="feature-title">Carte Interactive</div>
+        <p class="feature-text">Explorez les régions et départements du Sénégal ainsi que leurs infrastructures (santé, éducation, marchés, hôtellerie…) avec regroupement automatique des points.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔎</div>
+        <div class="feature-title">Recherche Territoriale</div>
+        <p class="feature-text">Recherchez une région, un département ou une infrastructure par nom et zoomez directement dessus grâce au fil d'ariane.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <div class="feature-title">Statistiques</div>
+        <p class="feature-text">Visualisez la répartition des infrastructures actives par type pour mieux comprendre l'offre territoriale.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📥</div>
+        <div class="feature-title">Export des Données</div>
+        <p class="feature-text">Téléchargez les données filtrées au format GeoJSON ou CSV pour vos propres analyses.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📍</div>
+        <div class="feature-title">Proximité Géolocalisée</div>
+        <p class="feature-text">Trouvez les infrastructures les plus proches de vous, avec un rayon de recherche ajustable.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🗺️</div>
+        <div class="feature-title">Carte Choroplèthe</div>
+        <p class="feature-text">Repérez les zones sous-dotées grâce à une jointure spatiale colorant chaque département selon sa densité d'infrastructures.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔥</div>
+        <div class="feature-title">Carte de Chaleur</div>
+        <p class="feature-text">Visualisez la concentration d'un type d'infrastructure choisi sur tout le territoire.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚖️</div>
+        <div class="feature-title">Comparateur de Départements</div>
+        <p class="feature-text">Comparez 2 à 3 départements côte à côte, par type d'infrastructure.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎚️</div>
+        <div class="feature-title">Filtres Croisés</div>
+        <p class="feature-text">Recherchez du texte et filtrez par plage d'attributs numériques au sein des couches actives.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🖨️</div>
+        <div class="feature-title">Rapport Imprimable</div>
+        <p class="feature-text">Générez en un clic un rapport (carte, stats, liste) pour un département donné, prêt à imprimer ou exporter en PDF.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="home-section" id="about-section">
+    <h2 class="section-title">À Propos du Projet</h2>
+    <div class="about-grid">
+      <div class="about-text">
+        <p>SITS est une plateforme interactive centralisant les informations géospatiales sur le territoire du Sénégal : régions, départements et infrastructures (santé, éducation, marchés, hôtellerie, loisirs, forages, parkings).</p>
+        <p>Elle offre des outils cartographiques dynamiques pour faciliter la compréhension de la répartition spatiale des infrastructures et appuyer la prise de décision territoriale.</p>
+      </div>
+      <div class="about-goals">
+        <h4>Objectifs du Projet</h4>
+        <ul>
+          <li>✓ Visualiser le territoire sénégalais à toutes les échelles</li>
+          <li>✓ Faciliter la recherche et la localisation d'infrastructures</li>
+          <li>✓ Offrir des statistiques claires sur l'offre territoriale</li>
+          <li>✓ Permettre l'export des données pour analyse</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer class="home-footer">
+    <div class="home-footer-title">🌍 SITS — Système d'Information Territorial du Sénégal</div>
+    <p class="home-footer-text">Une application géospatiale interactive pour explorer et analyser le territoire et les infrastructures du Sénégal.</p>
+  </footer>
+
+</div>
+
+<!-- ============================================================ -->
+<!-- PAGE APPLICATION                                              -->
+<!-- ============================================================ -->
+<div id="page-app" class="page">
+
 <!-- ===== EN-TÊTE ===== -->
 <header class="app-header">
   <button id="btn-toggle-sidebar" class="btn-icon only-mobile" aria-label="Ouvrir le menu" aria-expanded="false">
@@ -32,6 +145,29 @@
     <h1>SITS</h1>
     <p>Système d'Information Territorial du Sénégal</p>
   </div>
+
+  <div class="header-search">
+    <div class="header-search-field">
+      <svg class="search-icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.8"/>
+        <path d="M17 17L13.5 13.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      <input type="search" id="global-search" placeholder="Rechercher une région, un département, une infrastructure…" aria-label="Recherche territoriale" autocomplete="off">
+      <button type="button" id="btn-clear-search" class="search-clear hidden" aria-label="Effacer la recherche">✕</button>
+    </div>
+    <ul id="search-results" class="search-results hidden" role="listbox"></ul>
+  </div>
+
+  <button id="btn-dark-toggle" class="btn-icon theme-toggle" aria-label="Activer le mode sombre" aria-pressed="false" title="Basculer le mode sombre">
+    <svg class="icon-sun" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <circle cx="10" cy="10" r="4" stroke="currentColor" stroke-width="1.6"/>
+      <path d="M10 1.5v2M10 16.5v2M18.5 10h-2M3.5 10h-2M15.6 4.4l-1.4 1.4M5.8 14.2l-1.4 1.4M15.6 15.6l-1.4-1.4M5.8 5.8L4.4 4.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
+    <svg class="icon-moon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M17 11.2A7.2 7.2 0 018.8 3a7.2 7.2 0 108.2 8.2z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+    </svg>
+  </button>
+
   <div id="api-status" class="api-status" title="État de l'API">
     <span class="dot"></span><span class="label">Connexion à l'API…</span>
   </div>
@@ -42,8 +178,12 @@
   <!-- ===== MENU LATÉRAL ===== -->
   <aside id="sidebar" class="sidebar">
 
-    <section class="panel">
+    <section class="panel accent-primary">
       <h2>Recherche territoriale</h2>
+
+      <nav id="breadcrumb" class="breadcrumb" aria-label="Fil d'ariane territorial">
+        <button type="button" class="breadcrumb-item active" data-level="senegal">Sénégal</button>
+      </nav>
 
       <label for="select-region">Région</label>
       <select id="select-region">
@@ -56,17 +196,105 @@
       </select>
 
       <button id="btn-reset" class="btn-secondary" type="button">Réinitialiser la vue</button>
+      <button id="btn-print-report" class="btn-tool btn-print-report" type="button" disabled title="Sélectionnez un département pour générer son rapport">
+        <span class="btn-tool-icon" aria-hidden="true">🖨️</span> Rapport imprimable du département
+      </button>
     </section>
 
-    <section class="panel">
-      <h2>Couches d'infrastructures</h2>
+    <section class="panel accent-terracotta">
+      <div class="panel-heading-row">
+        <h2>Couches d'infrastructures</h2>
+        <span id="infra-total-badge" class="infra-total-badge hidden">0 affichées</span>
+      </div>
       <p class="hint">Cochez un ou plusieurs types à afficher sur la carte.</p>
       <ul id="infra-layer-list" class="layer-list"><!-- généré en JS --></ul>
+
+      <div class="infra-filter-block">
+        <label for="infra-text-filter">Recherche dans les couches actives</label>
+        <input type="search" id="infra-text-filter" placeholder="Nom, description…" disabled>
+
+        <label for="infra-range-column">Filtrer par attribut numérique</label>
+        <select id="infra-range-column" disabled>
+          <option value="">Activez une couche pour détecter les attributs numériques</option>
+        </select>
+        <div id="infra-range-inputs" class="range-inputs hidden">
+          <input type="number" id="infra-range-min" placeholder="Min">
+          <input type="number" id="infra-range-max" placeholder="Max">
+          <button id="btn-infra-range-apply" class="btn-tool" type="button">Appliquer</button>
+          <button id="btn-infra-range-clear" class="btn-tool" type="button" title="Effacer le filtre">✕</button>
+        </div>
+        <p id="infra-filter-hint" class="hint"></p>
+      </div>
     </section>
 
-    <section class="panel">
-      <h2>Légende</h2>
-      <ul id="legend-list" class="legend-list"><!-- généré en JS --></ul>
+    <section class="panel accent-gold">
+      <h2>📍 Proximité</h2>
+      <p class="hint">Trouvez les infrastructures les plus proches de votre position.</p>
+      <div class="tool-grid">
+        <button id="btn-proximity-locate" class="btn-tool" type="button">
+          <span class="btn-tool-icon" aria-hidden="true">🎯</span> Me géolocaliser
+        </button>
+      </div>
+      <label for="proximity-radius">Rayon de recherche : <strong><span id="proximity-radius-value">5</span> km</strong></label>
+      <input type="range" id="proximity-radius" min="0.5" max="50" step="0.5" value="5">
+      <fieldset id="proximity-type-list" class="choropleth-type-list"><!-- généré en JS --></fieldset>
+      <p id="proximity-status" class="hint"></p>
+      <ol id="proximity-results" class="proximity-results"></ol>
+    </section>
+
+    <section class="panel accent-primary">
+      <h2>🎨 Analyse spatiale</h2>
+      <p class="hint">Carte choroplèthe : densité d'infrastructures par département.</p>
+      <button id="btn-choropleth-toggle" class="btn-tool" type="button">
+        <span class="btn-tool-icon" aria-hidden="true">🎨</span> Activer la carte choroplèthe
+      </button>
+      <fieldset id="choropleth-type-list" class="choropleth-type-list"><!-- généré en JS --></fieldset>
+      <div id="choropleth-legend" class="choropleth-legend hidden"><!-- généré en JS --></div>
+    </section>
+
+    <section class="panel accent-gold">
+      <h2>Outils</h2>
+      <div class="tool-grid">
+        <button id="btn-measure" class="btn-tool" type="button">
+          <span class="btn-tool-icon" aria-hidden="true">📏</span> Mesurer une distance
+        </button>
+        <button id="btn-measure-clear" class="btn-tool" type="button">
+          <span class="btn-tool-icon" aria-hidden="true">↺</span> Effacer la mesure
+        </button>
+        <button id="btn-share-link" class="btn-tool" type="button">
+          <span class="btn-tool-icon" aria-hidden="true">🔗</span> Copier le lien de la vue
+        </button>
+        <button id="btn-admin-mode" class="btn-tool" type="button">
+          <span class="btn-tool-icon" aria-hidden="true">🔐</span> Mode administrateur
+        </button>
+      </div>
+      <p class="hint">L'export (GeoJSON / CSV) se trouve dans l'onglet « Données » de la zone principale.</p>
+    </section>
+
+    <section class="panel accent-terracotta" id="admin-panel" hidden>
+      <h2>➕ Ajouter une infrastructure</h2>
+      <p class="hint">Mode administrateur — cliquez sur « Placer sur la carte » puis sur l'emplacement voulu, ou saisissez les coordonnées directement. Aucune vérification serveur réelle n'est faite ici : ce gate est purement démonstratif.</p>
+
+      <label for="admin-type">Type d'infrastructure</label>
+      <select id="admin-type"></select>
+
+      <label for="admin-nom">Nom</label>
+      <input type="text" id="admin-nom" placeholder="Nom de l'infrastructure">
+
+      <label for="admin-descriptif">Description</label>
+      <input type="text" id="admin-descriptif" placeholder="Description (optionnel)">
+
+      <div class="admin-coords">
+        <label for="admin-lat">Latitude<input type="number" id="admin-lat" step="0.000001" placeholder="14.6928"></label>
+        <label for="admin-lng">Longitude<input type="number" id="admin-lng" step="0.000001" placeholder="-17.4467"></label>
+      </div>
+
+      <div class="tool-grid">
+        <button id="btn-admin-pick" class="btn-tool" type="button">
+          <span class="btn-tool-icon" aria-hidden="true">📍</span> Placer sur la carte
+        </button>
+        <button id="btn-admin-submit" class="btn-secondary" type="button">Enregistrer l'infrastructure</button>
+      </div>
     </section>
 
   </aside>
@@ -74,42 +302,147 @@
 
   <!-- ===== ZONE CARTE + PANNEAU BAS ===== -->
   <main class="main-area">
-    <div class="map-wrap">
-      <div id="map"></div>
-      <div id="map-loading" class="map-loading">
-        <div class="spinner" aria-hidden="true"></div>
-        <p>Chargement des données…</p>
-      </div>
+
+    <div class="app-tabs" id="app-tabs">
+      <button class="tab-btn active" data-tab="map">🗺️ Carte</button>
+      <button class="tab-btn" data-tab="stats">📈 Statistiques</button>
+      <button class="tab-btn" data-tab="table">📋 Données</button>
     </div>
 
-    <section class="bottom-panel" id="bottom-panel">
-      <div class="bottom-panel-tabs">
-        <button class="tab-btn active" data-tab="info">Informations</button>
-        <button class="tab-btn" data-tab="table">Tableau</button>
-        <button id="btn-toggle-panel" class="btn-icon panel-collapse" aria-label="Replier le panneau">▾</button>
-      </div>
+    <div class="app-tabs-body">
 
-      <div class="bottom-panel-body">
-        <div id="tab-info" class="tab-content active">
-          <p class="empty-state">Cliquez sur une région, un département ou une infrastructure pour afficher ses informations ici.</p>
+      <!-- ===== ONGLET CARTE ===== -->
+      <div id="tab-map" class="tab-content active">
+        <div class="map-wrap">
+          <div id="map"></div>
+          <div id="map-loading" class="map-loading">
+            <div class="spinner" aria-hidden="true"></div>
+            <p>Chargement des données…</p>
+          </div>
+          <div id="measure-badge" class="measure-badge"></div>
+          <div id="demo-banner" class="demo-banner hidden">Mode démonstration — données fictives (API indisponible)</div>
         </div>
 
-        <div id="tab-table" class="tab-content">
-          <div class="table-toolbar">
-            <span id="table-caption">Aucune couche active</span>
-            <input type="search" id="table-filter" placeholder="Filtrer les lignes…">
-          </div>
-          <div class="table-scroll">
-            <table id="data-table">
-              <thead><tr></tr></thead>
-              <tbody></tbody>
-            </table>
-          </div>
+        <div class="under-map-row">
+          <section class="panel accent-gold">
+            <h2>Légende</h2>
+            <ul id="legend-list" class="legend-list"><!-- généré en JS --></ul>
+          </section>
+          <section class="panel accent-primary">
+            <h2>Contrôles</h2>
+            <div class="tool-grid">
+              <button id="btn-recentrer-map" class="btn-tool" type="button">
+                <span class="btn-tool-icon" aria-hidden="true">🔄</span> Recentrer la carte
+              </button>
+              <button id="btn-reset-map" class="btn-tool" type="button">
+                <span class="btn-tool-icon" aria-hidden="true">⚡</span> Réinitialiser les filtres
+              </button>
+            </div>
+          </section>
+          <section class="panel accent-terracotta">
+            <h2>Résumé</h2>
+            <p id="map-summary" class="hint">Activez une ou plusieurs couches pour voir un résumé ici.</p>
+          </section>
+        </div>
+
+        </section>
+      </div>
+
+      <!-- ===== ONGLET STATISTIQUES ===== -->
+      <div id="tab-stats" class="tab-content">
+        <div class="stat-cards-row" id="stat-cards-row"><!-- généré en JS --></div>
+        
+        <div class="stats-grid">
+          <section class="panel">
+            <h2>Répartition par Type d'Infrastructure</h2>
+            <canvas id="stats-chart" class="stats-chart" width="400" height="300"></canvas>
+          </section>
+          
+          <section class="panel">
+            <h2>Répartition par Région</h2>
+            <canvas id="region-chart" class="stats-chart" width="400" height="300"></canvas>
+          </section>
+          
+          <section class="panel">
+            <h2>Densité par Département</h2>
+            <canvas id="density-chart" class="stats-chart" width="400" height="300"></canvas>
+          </section>
+          
+          <section class="panel">
+            <h2>Évolution Temporelle</h2>
+            <canvas id="temporal-chart" class="stats-chart" width="400" height="300"></canvas>
+          </section>
+        </div>
+
+        <section class="panel accent-terracotta">
+          <h2>⚖️ Comparateur de départements</h2>
+          <p class="hint">Sélectionnez 2 à 3 départements (Ctrl/Cmd + clic) et les types d'infrastructures à comparer.</p>
+          <label for="compare-dept-select">Départements à comparer</label>
+          <select id="compare-dept-select" multiple size="8"></select>
+          <fieldset id="compare-type-list" class="choropleth-type-list"><!-- généré en JS --></fieldset>
+          <button id="btn-compare-run" class="btn-secondary" type="button">Comparer</button>
+          <p id="compare-status" class="hint"></p>
+        </section>
+        <section class="panel">
+          <h2>Résultat comparaison</h2>
+          <canvas id="compare-chart" class="stats-chart hidden" width="760" height="280"></canvas>
+          <div id="compare-table-wrap" class="table-scroll compare-table-wrap"></div>
+        </section>
+      </div>
+
+      <!-- ===== ONGLET DONNÉES ===== -->
+      <div id="tab-table" class="tab-content">
+        <div class="data-section">
+          <section class="panel">
+            <h2>Choisir une table de données</h2>
+            <div class="table-selector">
+              <label for="table-select">Sélectionnez une table :</label>
+              <select id="table-select">
+                <option value="">-- Choisir une table --</option>
+                <option value="regions">Régions (14)</option>
+                <option value="departements">Départements (45)</option>
+                <option value="centresante">Centres de santé (128)</option>
+                <option value="forage">Forages (2 488)</option>
+                <option value="hoteleriepoint">Hôtellerie (1 611)</option>
+                <option value="loisir">Équipements de loisir (1 223)</option>
+                <option value="lyceepublic">Établissements scolaires (444)</option>
+                <option value="marche">Marchés (2 493)</option>
+                <option value="parking">Parkings (369)</option>
+              </select>
+              <button id="btn-load-table" class="btn-secondary" type="button">Charger les données</button>
+            </div>
+          </section>
+
+          <section class="panel" id="data-panel" hidden>
+            <div class="table-toolbar">
+              <span id="table-caption">Aucune table sélectionnée</span>
+              <div class="table-toolbar-actions">
+                <input type="search" id="table-filter" placeholder="Filtrer les lignes…">
+                <button id="btn-export-geojson" class="btn-export" type="button" title="Exporter en GeoJSON">GeoJSON</button>
+                <button id="btn-export-csv" class="btn-export" type="button" title="Exporter en CSV">CSV</button>
+              </div>
+            </div>
+            <div class="table-scroll">
+              <table id="data-table">
+                <thead><tr></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <div class="table-info">
+              <span id="table-count">0 enregistrements</span>
+            </div>
+          </section>
         </div>
       </div>
-    </section>
+
+    </div>
   </main>
 </div>
+
+</div><!-- /#page-app -->
+
+<!-- Rapport imprimable (rempli dynamiquement, visible uniquement à l'impression) -->
+<div id="print-report" class="print-report"></div>
 
 <!-- Notifications -->
 <div id="toast-container" class="toast-container" aria-live="polite"></div>
@@ -117,6 +450,8 @@
 <!-- Leaflet + plugin de clustering -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
+<script src="js/mock-data.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

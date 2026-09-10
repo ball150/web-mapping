@@ -14,7 +14,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from psycopg2 import sql
 
-from db import fetch_as_geojson, get_table_columns
+from db import execute_write, fetch_as_geojson, get_table_columns
 
 app = Flask(__name__)
 CORS(app)  # autorise le frontend (servi par Apache) à appeler cette API sur un autre port
@@ -113,7 +113,7 @@ def get_regions():
     """Toutes les régions du Sénégal, reprojetées en WGS84 (4326) pour Leaflet."""
     query = """
         SELECT
-            id AS gid,
+            gid,
             nomreg AS nom,
             admi01_id AS code_region,
             ST_AsGeoJSON(ST_Transform(geom, 4326)) AS geometry
@@ -133,7 +133,7 @@ def get_departements():
 
     query = """
         SELECT
-            id AS gid,
+            gid,
             n3nom AS nom,
             adm01_id AS code_region,
             adm02_id AS code_departement,
@@ -227,9 +227,103 @@ def get_infrastructures():
     if conditions:
         base_query += sql.SQL(" WHERE ") + sql.SQL(" AND ").join(conditions)
 
-    base_query += sql.SQL(" ORDER BY t.id ASC;")
+    base_query += sql.SQL(" ORDER BY t.gid ASC;")
 
     return jsonify(fetch_as_geojson(base_query, tuple(params)))
+
+
+@app.post("/api/infrastructures")
+def create_infrastructure():
+    """
+    Ajoute un point d'infrastructure (fonctionnalité d'import/administration).
+
+    Corps JSON attendu :
+        {
+          "type": "centresante",         # obligatoire, une des clés de INFRASTRUCTURE_TABLES
+          "lat": 14.69, "lng": -17.44,   # obligatoires, WGS84
+          "properties": { "nom": "...", "descriptif": "..." }   # optionnel
+        }
+
+    Seules les clés de "properties" correspondant à une colonne réelle de la
+    table (vérifiée dynamiquement via information_schema) sont insérées, ce qui
+    protège contre l'injection de noms de colonnes arbitraires tout en restant
+    générique quel que soit le schéma exact de chaque table.
+
+    NB sécurité : cet endpoint ne fait aucune vérification d'authentification —
+    le "mode administrateur" du frontend n'est qu'un gate d'interface, pas une
+    protection réelle. À sécuriser (jeton, session, rôle) avant tout déploiement
+    ouvert au public.
+    """
+    payload = request.get_json(silent=True) or {}
+    infra_type = payload.get("type")
+    lat = payload.get("lat")
+    lng = payload.get("lng")
+    properties = payload.get("properties") or {}
+
+    if infra_type not in INFRASTRUCTURE_TABLES:
+        return (
+            jsonify(
+                {
+                    "error": "Paramètre 'type' invalide ou manquant.",
+                    "types_valides": list(INFRASTRUCTURE_TABLES.keys()),
+                }
+            ),
+            400,
+        )
+
+    try:
+        lat = float(lat)
+        lng = float(lng)
+    except (TypeError, ValueError):
+        return jsonify({"error": "'lat' et 'lng' doivent être des nombres."}), 400
+
+    if not (-90 <= lat <= 90 and -180 <= lng <= 180):
+        return jsonify({"error": "Latitude/longitude hors limites valides."}), 400
+
+    if not isinstance(properties, dict):
+        return jsonify({"error": "'properties' doit être un objet."}), 400
+
+    table = INFRASTRUCTURE_TABLES[infra_type]
+    real_columns = {c.lower(): c for c in get_table_columns(table)}
+
+    columns, values = [], []
+    for key, value in properties.items():
+        real_col = real_columns.get(str(key).lower())
+        if real_col and real_col.lower() != "geom":
+            columns.append(real_col)
+            values.append(value)
+
+    if not columns:
+        return (
+            jsonify(
+                {
+                    "error": (
+                        "Aucune des propriétés envoyées ne correspond à une colonne "
+                        f"de la table '{table}'. Colonnes disponibles : "
+                        + ", ".join(sorted(real_columns.values()))
+                    )
+                }
+            ),
+            400,
+        )
+
+    column_identifiers = [sql.Identifier(c) for c in columns] + [sql.Identifier("geom")]
+    insert_columns = sql.SQL(", ").join(column_identifiers)
+    value_placeholders = sql.SQL(", ").join(
+        [sql.Placeholder()] * len(columns)
+        + [sql.SQL("ST_Transform(ST_SetSRID(ST_MakePoint(%s, %s), 4326), 32628)")]
+    )
+    query = sql.SQL(
+        "INSERT INTO public.{table} ({cols}) VALUES ({vals}) RETURNING id;"
+    ).format(table=sql.Identifier(table), cols=insert_columns, vals=value_placeholders)
+    params = tuple(values) + (lng, lat)
+
+    try:
+        row = execute_write(query, params)
+    except Exception as exc:  # noqa: BLE001 — on renvoie le détail au frontend
+        return jsonify({"error": f"Échec de l'insertion en base : {exc}"}), 500
+
+    return jsonify({"status": "ok", "id": row[0] if row else None}), 201
 
 
 if __name__ == "__main__":
