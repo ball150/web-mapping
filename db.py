@@ -12,11 +12,11 @@ load_dotenv()
 
 
 def get_connection():
-    """Ouvre une nouvelle connexion à la base webmapping."""
+    """Ouvre une nouvelle connexion à la base web-aida."""
     return psycopg2.connect(
         host=os.getenv("DB_HOST", "localhost"),
         port=os.getenv("DB_PORT", "5432"),
-        dbname=os.getenv("DB_NAME", "webmapping"),
+        dbname=os.getenv("DB_NAME", "web-aida"),
         user=os.getenv("DB_USER", "postgres"),
         password=os.getenv("DB_PASSWORD"),
     )
@@ -50,6 +50,26 @@ def fetch_as_geojson(query, params=None):
         )
 
     return {"type": "FeatureCollection", "features": features}
+
+
+def execute_write(query, params=None):
+    """
+    Exécute une requête d'écriture (INSERT/UPDATE, éventuellement avec RETURNING)
+    et retourne la première ligne renvoyée (ou None). Utilisée par l'endpoint
+    d'import/administration (ajout d'une infrastructure depuis l'UI).
+    """
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(query, params or ())
+            row = cur.fetchone() if cur.description else None
+        conn.commit()
+        return row
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
 
 
 def get_table_columns(table_name, schema="public"):
