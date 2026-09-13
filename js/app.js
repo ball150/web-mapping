@@ -57,7 +57,6 @@ const state = {
   choropleth: { active: false, layer: null, counts: null },
   heatmap: { active: false, layer: null, typeKey: null },
   proximity: { userLatLng: null, circle: null, marker: null, highlightLayer: null },
-  admin: { picking: false, previewMarker: null },
 };
 
 // ============================================================
@@ -65,6 +64,7 @@ const state = {
 // ============================================================
 
 document.addEventListener("DOMContentLoaded", () => {
+  console.log("SITS app.js — version DIAGNOSTIC du 2026-09-13 (traces [MESURE] activées)");
   state.favorites = loadFavorites();
 
   initMap();
@@ -78,7 +78,6 @@ document.addEventListener("DOMContentLoaded", () => {
   wireFilters();
   initSearch();
   initMeasureTool();
-  initShareLink();
   initExportButtons();
   renderFavoritesList();
 
@@ -88,10 +87,21 @@ document.addEventListener("DOMContentLoaded", () => {
   initProximitySearch();
   initComparator();
   initPrintReport();
-  initAdmin();
   initDataTableSelector();
 
   loadRegions();
+});
+
+// Recalcule la taille interne de la carte une fois que la page (polices, mise
+// en page CSS finale) est totalement chargée. Sans ça, si le conteneur #map
+// n'a pas encore sa taille définitive au moment où Leaflet l'a mesuré, TOUS
+// les clics restent décalés par rapport à ce qui est affiché (utile pour la
+// mesure de distance, mais aussi pour tous les autres clics sur la carte).
+window.addEventListener("load", () => {
+  setTimeout(() => { if (state.map) state.map.invalidateSize(); }, 250);
+});
+window.addEventListener("resize", () => {
+  if (state.map) state.map.invalidateSize();
 });
 
 // ============================================================
@@ -111,14 +121,39 @@ function initMap() {
     { attribution: "Tiles &copy; Esri — Source: Esri, Maxar, Earthstar Geographics", maxZoom: 19 }
   );
 
+  const dark = L.tileLayer(
+    "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+    { attribution: "&copy; OpenStreetMap contributors &copy; <a href=\"https://carto.com/attributions\">CARTO</a>", subdomains: "abcd", maxZoom: 20 }
+  );
+
   L.control.layers(
-    { "Plan (OpenStreetMap)": osm, "Satellite (Esri)": satellite },
+    { "Plan (OpenStreetMap)": osm, "Satellite (Esri)": satellite, "Sombre (CARTO)": dark },
     {},
     { position: "topright", collapsed: true }
   ).addTo(state.map);
 
   L.control.scale({ imperial: false, position: "bottomleft" }).addTo(state.map);
   addLocateControl();
+
+  // Recalcule automatiquement la taille interne de la carte à chaque fois que
+  // son conteneur change réellement de dimensions (police qui finit de charger,
+  // ouverture/fermeture de la sidebar, changement d'onglet, redimensionnement
+  // de la fenêtre…). Sans ça, si Leaflet mesure le conteneur AVANT que la mise
+  // en page CSS ne soit définitive, toute la conversion clic → coordonnées GPS
+  // reste décalée en permanence (la mesure de distance peut alors sortir très
+  // loin de la zone visible, y compris hors du Sénégal).
+  const mapEl = document.getElementById("map");
+  if (typeof ResizeObserver !== "undefined" && mapEl) {
+    let lastW = 0, lastH = 0;
+    const ro = new ResizeObserver((entries) => {
+      const box = entries[0].contentRect;
+      if (Math.round(box.width) === lastW && Math.round(box.height) === lastH) return;
+      lastW = Math.round(box.width);
+      lastH = Math.round(box.height);
+      state.map.invalidateSize();
+    });
+    ro.observe(mapEl);
+  }
 }
 
 function addLocateControl() {
@@ -308,7 +343,6 @@ async function loadRegions() {
     }
 
     await loadDepartementsForSearch();
-    await applyStateFromUrl();
   } catch (err) {
     console.error(err);
     setApiStatus("error", "Erreur inattendue");
@@ -507,8 +541,12 @@ function renderInfraLayer(type, features) {
 
 function fetchInfraFeatures(typeKey) {
   const departement = state.currentDepartementNom;
+  const regionNom = !departement && state.currentRegionCode
+    ? state.regionsData?.features.find((f) => String(f.properties.code_region) === String(state.currentRegionCode))?.properties.nom
+    : "";
   let path = `/infrastructures?type=${encodeURIComponent(typeKey)}`;
   if (departement) path += `&departement=${encodeURIComponent(departement)}`;
+  else if (regionNom) path += `&region=${encodeURIComponent(regionNom)}`;
   return apiGetWithFallback(path, () => window.SITS_MOCK.getInfrastructures(typeKey, departement));
 }
 
@@ -855,7 +893,7 @@ function renderRegionChart() {
         const latlng = marker.getLatLng();
         // Trouver la région contenant ce point
         state.regionsData.features.forEach(region => {
-          if (isPointInPolygon(latlng, region.geometry)) {
+          if (isPointInPolygonGeometry(latlng.lng, latlng.lat, region.geometry)) {
             regionCounts[region.properties.nom]++;
           }
         });
@@ -934,7 +972,7 @@ function renderDensityChart() {
         const latlng = marker.getLatLng();
         // Trouver le département contenant ce point
         state.departementsData.features.forEach(dept => {
-          if (isPointInPolygon(latlng, dept.geometry)) {
+          if (isPointInPolygonGeometry(latlng.lng, latlng.lat, dept.geometry)) {
             deptCounts[dept.properties.nom]++;
           }
         });
@@ -1086,24 +1124,6 @@ function renderTemporalChart() {
 }
 
 // Fonction utilitaire pour vérifier si un point est dans un polygone
-function isPointInPolygon(latlng, polygon) {
-  if (!polygon || !polygon.coordinates) return false;
-  
-  const coords = polygon.coordinates[0]; // premier ring du polygone
-  const x = latlng.lng, y = latlng.lat;
-  
-  let inside = false;
-  for (let i = 0, j = coords.length - 1; i < coords.length; j = i++) {
-    const xi = coords[i][0], yi = coords[i][1];
-    const xj = coords[j][0], yj = coords[j][1];
-    
-    if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) {
-      inside = !inside;
-    }
-  }
-  return inside;
-}
-
 function truncateLabel(ctx, text, maxWidth) {
   if (ctx.measureText(text).width <= maxWidth) return text;
   let truncated = text;
@@ -1743,9 +1763,40 @@ function initMeasureTool() {
 
   state.measure = { active: false, points: [], polyline: null, markers: [] };
 
+  if (badge && badge.parentElement && window.getComputedStyle(badge.parentElement).position === "static") {
+    badge.parentElement.style.position = "relative";
+  }
+
+  if (badge && window.getComputedStyle(badge).position === "static") {
+    // Le CSS ne semble pas positionner ce badge (bloc de style probablement
+    // absent) : on applique un style de secours pour garantir son affichage.
+    Object.assign(badge.style, {
+      position: "absolute",
+      left: "50%",
+      bottom: "18px",
+      transform: "translateX(-50%)",
+      zIndex: "1000",
+      background: "#1F4E3D",
+      color: "#fff",
+      padding: "8px 16px",
+      borderRadius: "20px",
+      fontSize: "13px",
+      boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
+      whiteSpace: "nowrap",
+      pointerEvents: "none",
+      display: "none",
+    });
+  }
+
   function updateBadge() {
-    if (!state.measure.active) { badge.classList.remove("visible"); return; }
+    if (!badge) return;
+    if (!state.measure.active) {
+      badge.classList.remove("visible");
+      badge.style.display = "none";
+      return;
+    }
     badge.classList.add("visible");
+    badge.style.display = "block";
     const pts = state.measure.points;
     if (pts.length < 2) {
       badge.textContent = "Cliquez sur la carte pour placer des points de mesure (Échap pour arrêter)";
@@ -1757,6 +1808,7 @@ function initMeasureTool() {
   }
 
   function resetMeasure() {
+    console.log("[MESURE] resetMeasure() appelé —", new Error().stack);
     state.measure.points = [];
     if (state.measure.polyline) { state.map.removeLayer(state.measure.polyline); state.measure.polyline = null; }
     state.measure.markers.forEach((m) => state.map.removeLayer(m));
@@ -1765,6 +1817,7 @@ function initMeasureTool() {
   }
 
   function setActive(isActive) {
+    console.log("[MESURE] setActive(", isActive, ") —", new Error().stack);
     state.measure.active = isActive;
     btn.classList.toggle("active", isActive);
     btn.innerHTML = isActive
@@ -1774,16 +1827,27 @@ function initMeasureTool() {
     if (!isActive) resetMeasure(); else updateBadge();
   }
 
-  state.map.on("click", (e) => {
+  state.map.on("preclick", (e) => {
+    console.log("[MESURE] preclick reçu — active =", state.measure.active, "originalEvent =", e.originalEvent && e.originalEvent.type, "target =", e.originalEvent && e.originalEvent.target);
     if (!state.measure.active) return;
-    state.measure.points.push(e.latlng);
-    const marker = L.circleMarker(e.latlng, { radius: 5, color: "#C9A84C", weight: 2, fillColor: "#C9A84C", fillOpacity: 1 }).addTo(state.map);
-    state.measure.markers.push(marker);
-    if (state.measure.polyline) state.map.removeLayer(state.measure.polyline);
-    if (state.measure.points.length > 1) {
-      state.measure.polyline = L.polyline(state.measure.points, { color: "#C9A84C", weight: 3, dashArray: "6 5" }).addTo(state.map);
+    try {
+      // On recalcule la position à partir de l'événement souris natif plutôt que
+      // d'utiliser e.latlng : quand le clic tombe sur un marqueur (infrastructure
+      // ou cluster), Leaflet renvoie la position DU MARQUEUR, pas celle du clic —
+      // ce qui pouvait faire apparaître la mesure loin de l'endroit cliqué.
+      const latlng = state.map.mouseEventToLatLng(e.originalEvent);
+      state.measure.points.push(latlng);
+      const marker = L.circleMarker(latlng, { radius: 5, color: "#C9A84C", weight: 2, fillColor: "#C9A84C", fillOpacity: 1 }).addTo(state.map);
+      state.measure.markers.push(marker);
+      if (state.measure.polyline) state.map.removeLayer(state.measure.polyline);
+      if (state.measure.points.length > 1) {
+        state.measure.polyline = L.polyline(state.measure.points, { color: "#C9A84C", weight: 3, dashArray: "6 5" }).addTo(state.map);
+      }
+      updateBadge();
+      console.log("[MESURE] point ajouté — total points =", state.measure.points.length, "| badge display =", badge && badge.style.display, "| badge classes =", badge && badge.className, "| badge texte =", badge && badge.textContent);
+    } catch (err) {
+      console.error("[MESURE] ERREUR dans le handler preclick :", err);
     }
-    updateBadge();
   });
 
   document.addEventListener("keydown", (e) => {
@@ -1796,59 +1860,6 @@ function initMeasureTool() {
 
 function formatDistance(meters) {
   return meters < 1000 ? `${Math.round(meters)} m` : `${(meters / 1000).toFixed(2)} km`;
-}
-
-// ============================================================
-// PARTAGE DE VUE VIA URL
-// ============================================================
-
-function initShareLink() {
-  const btn = document.getElementById("btn-share-link");
-  if (!btn) return;
-  btn.addEventListener("click", async () => {
-    const params = new URLSearchParams();
-    if (state.currentRegionCode) params.set("region", state.currentRegionCode);
-    const deptSelect = document.getElementById("select-departement");
-    if (deptSelect.value) params.set("dept", deptSelect.value);
-    const activeLayers = INFRA_TYPES.filter((t) => state.infraLayers[t.key]).map((t) => t.key);
-    if (activeLayers.length) params.set("layers", activeLayers.join(","));
-
-    const url = `${location.origin}${location.pathname}#${params.toString()}`;
-    try {
-      await navigator.clipboard.writeText(url);
-      showToast("ok", "Lien de la vue copié dans le presse-papiers.");
-    } catch (_) {
-      window.prompt("Copiez ce lien :", url);
-    }
-  });
-}
-
-async function applyStateFromUrl() {
-  const hash = location.hash.replace(/^#/, "");
-  if (!hash) return;
-  const params = new URLSearchParams(hash);
-  const region = params.get("region");
-  const dept = params.get("dept");
-  const layers = params.get("layers");
-
-  if (region) {
-    document.getElementById("select-region").value = region;
-    await handleRegionChange(region);
-  }
-  if (dept) {
-    document.getElementById("select-departement").value = dept;
-    handleDepartementChange(dept);
-  }
-  if (layers) {
-    layers.split(",").filter(Boolean).forEach((key) => {
-      const type = INFRA_TYPES.find((t) => t.key === key);
-      const checkbox = document.getElementById(`infra-${key}`);
-      if (type && checkbox) {
-        checkbox.checked = true;
-        toggleInfraLayer(type, true);
-      }
-    });
-  }
 }
 
 // ============================================================
@@ -1926,7 +1937,7 @@ function initDataTableSelector() {
 
       if (data && data.features) {
         setTableSource(label, data.features);
-        dataPanel.classList.remove("hidden");
+        dataPanel.hidden = false;
         document.getElementById("table-caption").textContent = label;
         document.getElementById("table-count").textContent = `${data.features.length} enregistrements`;
         showToast("ok", `Table ${label} chargée avec succès`);
@@ -2135,115 +2146,6 @@ function buildPrintMapSvg(deptFeature, perType) {
     </svg>
     <div class="pr-legend">${legend}</div>
   `;
-}
-
-// ============================================================
-// MODE ADMINISTRATEUR — AJOUT D'UNE INFRASTRUCTURE DEPUIS L'UI
-// ============================================================
-
-// NB : ce code est un simple identifiant de démonstration côté client, pas une
-// authentification réelle. Il ne fait que masquer/afficher le formulaire ; la
-// véritable protection (jeton, session, rôle) doit être assurée côté serveur.
-const ADMIN_DEMO_CODE = "sits-admin";
-
-function initAdmin() {
-  const toggleBtn = document.getElementById("btn-admin-mode");
-  const panel = document.getElementById("admin-panel");
-  const typeSelect = document.getElementById("admin-type");
-  const pickBtn = document.getElementById("btn-admin-pick");
-  const submitBtn = document.getElementById("btn-admin-submit");
-  const latInput = document.getElementById("admin-lat");
-  const lngInput = document.getElementById("admin-lng");
-  if (!toggleBtn || !panel) return;
-
-  typeSelect.innerHTML = INFRA_TYPES.map((t) => `<option value="${t.key}">${t.label}</option>`).join("");
-
-  toggleBtn.addEventListener("click", () => {
-    if (panel.hidden) {
-      const code = window.prompt("Code administrateur (démonstration) :");
-      if (code === null) return;
-      if (code !== ADMIN_DEMO_CODE) { showToast("error", "Code incorrect."); return; }
-      panel.hidden = false;
-      toggleBtn.classList.add("active");
-      showToast("ok", "Mode administrateur activé.");
-    } else {
-      panel.hidden = true;
-      toggleBtn.classList.remove("active");
-      setAdminPicking(false);
-    }
-  });
-
-  pickBtn.addEventListener("click", () => setAdminPicking(!state.admin.picking));
-
-  state.map.on("click", (e) => {
-    if (!state.admin.picking) return;
-    latInput.value = e.latlng.lat.toFixed(6);
-    lngInput.value = e.latlng.lng.toFixed(6);
-    if (state.admin.previewMarker) state.map.removeLayer(state.admin.previewMarker);
-    state.admin.previewMarker = L.marker(e.latlng, { opacity: 0.85 })
-      .addTo(state.map)
-      .bindPopup("Nouvel emplacement (aperçu, non enregistré)")
-      .openPopup();
-    setAdminPicking(false);
-  });
-
-  submitBtn.addEventListener("click", () => submitAdminInfrastructure());
-
-  function setAdminPicking(active) {
-    state.admin.picking = active;
-    pickBtn.classList.toggle("active", active);
-    state.map.getContainer().style.cursor = active ? "crosshair" : "";
-    if (active) showToast("info", "Cliquez sur la carte pour placer le point.");
-  }
-}
-
-async function submitAdminInfrastructure() {
-  const submitBtn = document.getElementById("btn-admin-submit");
-  const type = document.getElementById("admin-type").value;
-  const nom = document.getElementById("admin-nom").value.trim();
-  const descriptif = document.getElementById("admin-descriptif").value.trim();
-  const lat = parseFloat(document.getElementById("admin-lat").value);
-  const lng = parseFloat(document.getElementById("admin-lng").value);
-
-  if (!nom) { showToast("error", "Le nom de l'infrastructure est requis."); return; }
-  if (Number.isNaN(lat) || Number.isNaN(lng)) {
-    showToast("error", "Placez un point sur la carte ou saisissez des coordonnées valides.");
-    return;
-  }
-
-  submitBtn.disabled = true;
-  try {
-    const res = await fetch(`${API_BASE}/infrastructures`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type, lat, lng, properties: { nom, descriptif } }),
-    });
-    if (!res.ok) {
-      let detail = "";
-      try { detail = (await res.json()).error || ""; } catch (_) {}
-      throw new Error(detail || `HTTP ${res.status}`);
-    }
-
-    showToast("ok", "Infrastructure enregistrée avec succès.");
-    document.getElementById("admin-nom").value = "";
-    document.getElementById("admin-descriptif").value = "";
-    document.getElementById("admin-lat").value = "";
-    document.getElementById("admin-lng").value = "";
-    if (state.admin.previewMarker) { state.map.removeLayer(state.admin.previewMarker); state.admin.previewMarker = null; }
-
-    delete state.nationalInfra[type]; // le cache national de ce type est désormais périmé
-    const typeObj = INFRA_TYPES.find((t) => t.key === type);
-    const checkbox = document.getElementById(`infra-${type}`);
-    if (typeObj && checkbox && checkbox.checked) toggleInfraLayer(typeObj, true);
-  } catch (err) {
-    console.error(err);
-    const msg = state.demoMode
-      ? "Ajout indisponible en mode démonstration (l'API Flask n'est pas joignable)."
-      : (err.message || "Échec de l'enregistrement.");
-    showToast("error", msg);
-  } finally {
-    submitBtn.disabled = false;
-  }
 }
 
 // ============================================================

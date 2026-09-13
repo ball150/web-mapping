@@ -261,40 +261,26 @@
         <button id="btn-measure-clear" class="btn-tool" type="button">
           <span class="btn-tool-icon" aria-hidden="true">↺</span> Effacer la mesure
         </button>
-        <button id="btn-share-link" class="btn-tool" type="button">
-          <span class="btn-tool-icon" aria-hidden="true">🔗</span> Copier le lien de la vue
-        </button>
-        <button id="btn-admin-mode" class="btn-tool" type="button">
-          <span class="btn-tool-icon" aria-hidden="true">🔐</span> Mode administrateur
-        </button>
       </div>
       <p class="hint">L'export (GeoJSON / CSV) se trouve dans l'onglet « Données » de la zone principale.</p>
     </section>
 
-    <section class="panel accent-terracotta" id="admin-panel" hidden>
-      <h2>➕ Ajouter une infrastructure</h2>
-      <p class="hint">Mode administrateur — cliquez sur « Placer sur la carte » puis sur l'emplacement voulu, ou saisissez les coordonnées directement. Aucune vérification serveur réelle n'est faite ici : ce gate est purement démonstratif.</p>
+    <section class="panel accent-primary">
+      <h2>🔥 Carte de chaleur</h2>
+      <p class="hint">Visualisez la concentration d'un type d'infrastructure sur tout le territoire.</p>
 
-      <label for="admin-type">Type d'infrastructure</label>
-      <select id="admin-type"></select>
+      <label for="heatmap-type-select">Type d'infrastructure</label>
+      <select id="heatmap-type-select"></select>
 
-      <label for="admin-nom">Nom</label>
-      <input type="text" id="admin-nom" placeholder="Nom de l'infrastructure">
+      <label for="heatmap-radius">Rayon : <strong><span id="heatmap-radius-value">25</span> px</strong></label>
+      <input type="range" id="heatmap-radius" min="10" max="60" step="1" value="25">
 
-      <label for="admin-descriptif">Description</label>
-      <input type="text" id="admin-descriptif" placeholder="Description (optionnel)">
+      <button id="btn-heatmap-toggle" class="btn-tool" type="button">
+        <span class="btn-tool-icon" aria-hidden="true">🔥</span> Activer
+      </button>
 
-      <div class="admin-coords">
-        <label for="admin-lat">Latitude<input type="number" id="admin-lat" step="0.000001" placeholder="14.6928"></label>
-        <label for="admin-lng">Longitude<input type="number" id="admin-lng" step="0.000001" placeholder="-17.4467"></label>
-      </div>
-
-      <div class="tool-grid">
-        <button id="btn-admin-pick" class="btn-tool" type="button">
-          <span class="btn-tool-icon" aria-hidden="true">📍</span> Placer sur la carte
-        </button>
-        <button id="btn-admin-submit" class="btn-secondary" type="button">Enregistrer l'infrastructure</button>
-      </div>
+      <div id="heatmap-legend" class="choropleth-legend hidden"><!-- généré en JS --></div>
+      <p id="heatmap-status" class="hint"></p>
     </section>
 
   </aside>
@@ -345,7 +331,6 @@
           </section>
         </div>
 
-        </section>
       </div>
 
       <!-- ===== ONGLET STATISTIQUES ===== -->
